@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoyageVista • Discover the World</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap');
+        
+        :root {
+            --primary: #0ea5e9;
+        }
+        
+        .tail-container {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        
+        .heading-font {
+            font-family: 'Playfair Display', sans-serif;
+        }
+
+        .hero-bg {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.55)), 
+                             url('https://picsum.photos/id/1015/2000/1200');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .card-hover {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-12px) scale(1.03);
+            box-shadow: 0 25px 50px -12px rgb(14 165 233 / 0.25);
+        }
+
+        .nav-link {
+            position: relative;
+        }
+        
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: #0ea5e9;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover:after {
+            width: 100%;
+        }
+
+        .modal {
+            animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        @keyframes modalPop {
+            0% { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .destination-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+    </style>
+</head>
+<body class="tail-container bg-zinc-50 text-zinc-800">
+
+    <!-- NAVBAR -->
+    <nav class="bg-white border-b sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+            <div class="flex items-center gap-x-3">
+                <div class="w-10 h-10 bg-sky-500 rounded-2xl flex items-center justify-center text-white text-3xl shadow-inner">
+                    🌍
+                </div>
+                <div>
+                    <span class="heading-font text-3xl font-bold tracking-tight text-sky-600">Voyage</span>
+                    <span class="heading-font text-3xl font-bold tracking-tight text-zinc-900">Vista</span>
+                </div>
+            </div>
+
+            <div class="hidden md:flex items-center gap-x-9 text-sm font-medium">
+                <a href="#destinations" onclick="smoothScrollTo('destinations')" class="nav-link cursor-pointer">Destinations</a>
+                <a href="#trips" onclick="smoothScrollTo('trips')" class="nav-link cursor-pointer">Trips</a>
+                <a href="#guides" onclick="smoothScrollTo('guides')" class="nav-link cursor-pointer">Travel Guides</a>
+                <a href="#about" onclick="smoothScrollTo('about')" class="nav-link cursor-pointer">About Us</a>
+            </div>
+
+            <div class="flex items-center gap-x-4">
+                <button onclick="toggleLanguage()" 
+                        class="flex items-center gap-x-2 px-5 py-2.5 text-sm font-semibold border border-zinc-300 rounded-3xl hover:border-sky-300 transition-colors">
+                    <i class="fa-solid fa-globe"></i>
+                    <span id="lang-text">EN</span>
+                </button>
+                <button onclick="showBookingModal()" 
+                        class="bg-sky-600 hover:bg-sky-700 transition-all text-white px-8 py-3 rounded-3xl font-semibold flex items-center gap-x-2 shadow-lg shadow-sky-200">
+                    <i class="fa-solid fa-plane"></i>
+                    Book Now
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <header class="hero-bg h-screen flex items-center text-white">
+        <div class="max-w-5xl mx-auto px-6 text-center">
+            <div class="max-w-3xl mx-auto">
+                <h1 class="heading-font text-7xl md:text-8xl font-bold leading-none tracking-tighter mb-4">
+                    Your next<br>adventure starts here
+                </h1>
+                <p class="text-2xl text-white/90 mb-10 font-light">
+                    Expertly curated journeys to the world's most breathtaking places
+                </p>
+                
+                <!-- Search Bar -->
+                <div class="bg-white rounded-3xl shadow-2xl p-2 max-w-xl mx-auto">
+                    <div class="flex flex-col md:flex-row gap-3">
+                        <input id="hero-search" 
+                               onkeyup="if(event.key === 'Enter') filterFromHero()"
+                               type="text" 
+                               placeholder="Where do you want to go?" 
+                               class="flex-1 px-8 py-6 text-zinc-800 text-lg placeholder-zinc-400 rounded-3xl focus:outline-none">
+                        <button onclick="filterFromHero()" 
+                                class="bg-sky-600 hover:bg-sky-700 px-12 py-6 rounded-3xl font-semibold text-white flex items-center gap-x-3 text-lg">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            Search
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mt-12 flex justify-center gap-8 text-sm">
+                    <div class="flex items-center gap-x-2">
+                        <i class="fa-solid fa-check text-emerald-400"></i>
+                        <span>Free cancellation</span>
+                    </div>
+                    <div class="flex items-center gap-x-2">
+                        <i class="fa-solid fa-check text-emerald-400"></i>
+                        <span>24/7 travel support</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Scroll prompt -->
+        <div class="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-y-2 text-white/70 text-xs tracking-widest">
+            <div>SCROLL TO EXPLORE</div>
+            <div class="w-px h-12 bg-white/30"></div>
+        </div>
+    </header>
+
+    <!-- DESTINATIONS SECTION -->
+    <section id="destinations" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
+                <div>
+                    <span class="uppercase tracking-[3px] text-sky-500 text-sm font-medium">Popular right now</span>
+                    <h2 class="heading-font text-5xl font-semibold tracking-tight">Destinations</h2>
+                </div>
+                
+                <!-- Filters -->
+                <div class="flex flex-wrap gap-3 mt-8 md:mt-0" id="filter-buttons">
+                    <button onclick="filterCategory('all')" 
+                            class="active-filter px-7 py-3 bg-zinc-900 text-white rounded-3xl text-sm font-medium">All</button>
+                    <button onclick="filterCategory('beach')" 
+                            class="px-7 py-3 border border-zinc-300 hover:border-zinc-400 rounded-3xl text-sm font-medium">Beach</button>
+                    <button onclick="filterCategory('mountain')" 
+                            class="px-7 py-3 border border-zinc-300 hover:border-zinc-400 rounded-3xl text-sm font-medium">Mountain</button>
+                    <button onclick="filterCategory('city')" 
+                            class="px-7 py-3 border border-zinc-300 hover:border-zinc-400 rounded-3xl text-sm font-medium">City</button>
+                    <button onclick="filterCategory('adventure')" 
+                            class="px-7 py-3 border border-zinc-300 hover:border-zinc-400 rounded-3xl text-sm font-medium">Adventure</button>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="mb-8">
+                <input id="main-search" 
+                       onkeyup="liveSearch()"
+                       type="text" 
+                       placeholder="Search destinations or keywords..." 
+                       class="w-full max-w-md px-8 py-5 border border-zinc-200 focus:border-sky-400 rounded-3xl outline-none text-lg">
+            </div>
+
+            <!-- Destination Grid -->
+            <div id="destination-grid" class="destination-grid">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURED TRIPS -->
+    <section id="trips" class="py-24 bg-gradient-to-b from-zinc-50 to-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <span class="text-sky-500 text-sm font-semibold tracking-widest">LIMITED TIME</span>
+                <h2 class="heading-font text-5xl font-semibold tracking-tight mt-2">Signature Journeys</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Trip 1 -->
+                <div class="group bg-white rounded-3xl overflow-hidden shadow-xl card-hover">
+                    <div class="h-80 bg-cover bg-center relative" 
+                         style="background-image: url('https://picsum.photos/id/1016/800/600')">
+                        <div class="absolute top-6 right-6 bg-white px-5 py-2 rounded-3xl text-sm font-semibold shadow">
+                            9 days • $3,299
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="flex justify-between items-baseline">
+                            <h3 class="text-2xl font-semibold">Northern Lights Escape</h3>
+                            <span class="text-emerald-500 text-sm">Iceland</span>
+                        </div>
+                        <p class="mt-3 text-zinc-600 line-clamp-3">Chase the aurora borealis, soak in geothermal baths, and explore volcanic landscapes on this unforgettable winter adventure.</p>
+                        <button onclick="showBookingModal()" 
+                                class="mt-8 w-full py-4 bg-zinc-900 hover:bg-black text-white rounded-3xl text-sm font-semibold transition">
+                            Reserve Your Spot
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Trip 2 -->
+                <div class="group bg-white rounded-3xl overflow-hidden shadow-xl card-hover">
+                    <div class="h-80 bg-cover bg-center relative" 
+                         style="background-image: url('https://picsum.photos/id/201/800/600')">
+                        <div class="absolute top-6 right-6 bg-white px-5 py-2 rounded-3xl text-sm font-semibold shadow">
+                            12 days • $4,899
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="flex justify-between items-baseline">
+                            <h3 class="text-2xl font-semibold">Machu Picchu Odyssey</h3>
+                            <span class="text-emerald-500 text-sm">Peru</span>
+                        </div>
+                        <p class="mt-3 text-zinc-600 line-clamp-3">Hike the Inca Trail, discover ancient ruins, and immerse yourself in Andean culture with private guides.</p>
+                        <button onclick="showBookingModal()" 
+                                class="mt-8 w-full py-4 bg-zinc-900 hover:bg-black text-white rounded-3xl text-sm font-semibold transition">
+                            Reserve Your Spot
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Trip 3 -->
+                <div class="group bg-white rounded-3xl overflow-hidden shadow-xl card-hover">
+                    <div class="h-80 bg-cover bg-center relative" 
+                         style="background-image: url('https://picsum.photos/id/251/800/600')">
+                        <div class="absolute top-6 right-6 bg-white px-5 py-2 rounded-3xl text-sm font-semibold shadow">
+                            7 days • $2,799
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="flex justify-between items-baseline">
+                            <h3 class="text-2xl font-semibold">Santorini Romance</h3>
+                            <span class="text-emerald-500 text-sm">Greece</span>
+                        </div>
+                        <p class="mt-3 text-zinc-600 line-clamp-3">Sunsets over the caldera, private yacht cruises, and cliffside dinners in the most romantic destination on Earth.</p>
+                        <button onclick="showBookingModal()" 
+                                class="mt-8 w-full py-4 bg-zinc-900 hover:bg-black text-white rounded-3xl text-sm font-semibold transition">
+                            Reserve Your Spot
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TRAVEL GUIDES / TIPS -->
+    <section id="guides" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid md:grid-cols-12 gap-16 items-center">
+                <div class="md:col-span-5">
+                    <h2 class="heading-font text-5xl font-semibold tracking-tight leading-none">Travel smarter.<br>With our guides.</h2>
+                    <p class="mt-8 text-lg text-zinc-600 max-w-md">
+                        Expert-written guides, packing lists, hidden gems, and insider tips for every destination.
+                    </p>
+                    <button onclick="window.scrollTo({top: document.getElementById('destinations').offsetTop - 100, behavior: 'smooth'})"
+                            class="mt-10 inline-flex items-center gap-x-3 text-sky-600 font-semibold">
+                        Browse all guides 
+                        <span class="text-2xl leading-none">→</span>
+                    </button>
+                </div>
+                
+                <div class="md:col-span-7 grid grid-cols-2 gap-8">
+                    <div class="bg-zinc-100 rounded-3xl p-8 hover:bg-amber-50 transition-colors group">
+                        <div class="text-6xl mb-6">🧳</div>
+                        <h4 class="text-2xl font-semibold">What to Pack for Iceland</h4>
+                        <p class="text-zinc-600 mt-4">Layering tips, must-have gear, and what NOT to bring in 2026.</p>
+                        <div class="mt-6 text-xs uppercase tracking-widest text-amber-600">Updated March 2026</div>
+                    </div>
+                    
+                    <div class="bg-zinc-100 rounded-3xl p-8 hover:bg-rose-50 transition-colors group">
+                        <div class="text-6xl mb-6">🍣</div>
+                        <h4 class="text-2xl font-semibold">Tokyo Street Food Guide</h4>
+                        <p class="text-zinc-600 mt-4">Where locals eat, hidden izakayas, and the best ramen under $10.</p>
+                        <div class="mt-6 text-xs uppercase tracking-widest text-rose-600">Updated March 2026</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="py-24 bg-zinc-900 text-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="heading-font text-5xl font-semibold">Travelers love us</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white/10 backdrop-blur-xl p-8 rounded-3xl">
+                    <div class="flex gap-x-1 text-amber-400 mb-6">
+                        ★★★★☆
+                    </div>
+                    <p class="italic">"The Santorini trip was pure magic. Our guide knew every secret spot. Best vacation of my life!"</p>
+                    <div class="mt-10 flex items-center gap-x-4">
+                        <img src="https://picsum.photos/id/64/64" class="w-12 h-12 rounded-2xl object-cover" alt="">
+                        <div>
+                            <div class="font-semibold">Sarah Mitchell</div>
+                            <div class="text-sm text-white/60">California • March 2026</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white/10 backdrop-blur-xl p-8 rounded-3xl">
+                    <div class="flex gap-x-1 text-amber-400 mb-6">
+                        ★★★★★
+                    </div>
+                    <p class="italic">"From booking to landing back home, everything was flawless. The private Machu Picchu sunrise tour still gives me chills."</p>
+                    <div class="mt-10 flex items-center gap-x-4">
+                        <img src="https://picsum.photos/id/201/64" class="w-12 h-12 rounded-2xl object-cover" alt="">
+                        <div>
+                            <div class="font-semibold">Marcus Rivera</div>
+                            <div class="text-sm text-white/60">New York • February 2026</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white/10 backdrop-blur-xl p-8 rounded-3xl">
+                    <div class="flex gap-x-1 text-amber-400 mb-6">
+                        ★★★★☆
+                    </div>
+                    <p class="italic">"The team made our family trip to Banff stress-free. Our 8-year-old still talks about the grizzly we saw!"</p>
+                    <div class="mt-10 flex items-center gap-x-4">
+                        <img src="https://picsum.photos/id/29/64" class="w-12 h-12 rounded-2xl object-cover" alt="">
+                        <div>
+                            <div class="font-semibold">Emma &amp; David Thompson</div>
+                            <div class="text-sm text-white/60">London • January 2026</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-zinc-950 text-white py-20">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-12 gap-y-12">
+            <div class="md:col-span-5">
+                <div class="flex items-center gap-x-3 mb-8">
+                    <div class="w-10 h-10 bg-sky-500 rounded-2xl flex items-center justify-center text-white text-3xl">🌍</div>
+                    <span class="heading-font text-4xl font-bold">VoyageVista</span>
+                </div>
+                <p class="max-w-xs text-zinc-400">
+                    Premium travel experiences since 2019. 
+                    Trusted by over 47,000 adventurers worldwide.
+                </p>
+                <div class="mt-12 flex gap-x-6 text-2xl">
+                    <i class="fa-brands fa-instagram hover:text-sky-400 cursor-pointer"></i>
+                    <i class="fa-brands fa-tiktok hover:text-sky-400 cursor-pointer"></i>
+                    <i class="fa-brands fa-linkedin hover:text-sky-400 cursor-pointer"></i>
+                </div>
+            </div>
+            
+            <div class="md:col-span-2">
+                <h4 class="font-semibold mb-6 text-sm tracking-widest">Company</h4>
+                <div class="space-y-4 text-sm text-zinc-400">
+                    <div class="hover:text-white cursor-pointer">About Us</div>
+                    <div class="hover:text-white cursor-pointer">Careers</div>
+                    <div class="hover:text-white cursor-pointer">Press</div>
+                    <div class="hover:text-white cursor-pointer">Contact</div>
+                </div>
+            </div>
+            
+            <div class="md:col-span-2">
+                <h4 class="font-semibold mb-6 text-sm tracking-widest">Explore</h4>
+                <div class="space-y-4 text-sm text-zinc-400">
+                    <div class="hover:text-white cursor-pointer">Destinations</div>
+                    <div class="hover:text-white cursor-pointer">Signature Trips</div>
+                    <div class="hover:text-white cursor-pointer">Travel Blog</div>
+                    <div class="hover:text-white cursor-pointer">Gift Cards</div>
+                </div>
+            </div>
+            
+            <div class="md:col-span-3">
+                <h4 class="font-semibold mb-6 text-sm tracking-widest">Get in touch</h4>
+                <div class="text-sm">
+                    <div class="flex items-center gap-x-3 mb-4">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>hello@voyagevista.com</span>
+                    </div>
+                    <div class="flex items-center gap-x-3">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>+1 (415) 555-0198</span>
+                    </div>
+                </div>
+                
+                <div class="mt-12 text-xs text-zinc-500">
+                    © 2026 VoyageVista Travel Inc.<br>
+                    All rights reserved.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- BOOKING MODAL -->
+    <div id="booking-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-[999]">
+        <div class="modal bg-white max-w-lg w-full mx-6 rounded-3xl overflow-hidden">
+            <div class="px-8 py-6 border-b flex items-center justify-between">
+                <h3 class="text-2xl font-semibold">Book Your Dream Trip</h3>
+                <button onclick="hideBookingModal()" class="text-4xl leading-none text-zinc-300 hover:text-zinc-500">×</button>
+            </div>
+            
+            <div class="p-8 space-y-8">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Destination</label>
+                    <select id="modal-destination" class="w-full border border-zinc-200 rounded-3xl px-6 py-5 text-lg">
+                        <option>Santorini, Greece</option>
+                        <option>Iceland Northern Lights</option>
+                        <option>Machu Picchu, Peru</option>
+                        <option>Banff National Park</option>
+                        <option>Maldives Overwater Villa</option>
+                    </select>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Travel Date</label>
+                        <input type="date" value="2026-07-15" 
+                               class="w-full border border-zinc-200 rounded-3xl px-6 py-5">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Travelers</label>
+                        <select class="w-full border border-zinc-200 rounded-3xl px-6 py-5">
+                            <option>2 adults</option>
+                            <option>2 adults + 1 child</option>
+                            <option>4 adults</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Special requests or notes</label>
+                    <textarea class="w-full border border-zinc-200 rounded-3xl px-6 py-5 h-28 resize-none" 
+                              placeholder="E.g. vegan meals, anniversary surprise..."></textarea>
+                </div>
+            </div>
+            
+            <div class="p-8 bg-zinc-50 flex items-center justify-between border-t">
+                <div>
+                    <div class="text-xs text-zinc-500">Starting from</div>
+                    <div class="text-3xl font-semibold">$2,799</div>
+                </div>
+                <button onclick="confirmBooking()" 
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-16 py-6 rounded-3xl font-semibold text-lg transition-all active:scale-95">
+                    Confirm Booking
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tailwind script run
+        function initializeTailwind() {
+            // Already initialized via CDN
+        }
+
+        // Destinations data
+        const destinations = [
+            {
+                id: 1,
+                name: "Santorini",
+                location: "Greece",
+                category: "beach",
+                price: 2899,
+                img: "https://picsum.photos/id/1015/800/600",
+                desc: "White-washed cliffs, blue domes, and the most magical sunsets on Earth."
+            },
+            {
+                id: 2,
+                name: "Banff National Park",
+                location: "Canada",
+                category: "mountain",
+                price: 2199,
+                img: "https://picsum.photos/id/133/800/600",
+                desc: "Turquoise lakes, towering peaks, and incredible wildlife in the Canadian Rockies."
+            },
+            {
+                id: 3,
+                name: "Tokyo",
+                location: "Japan",
+                category: "city",
+                price: 3499,
+                img: "https://picsum.photos/id/160/800/600",
+                desc: "Neon lights, ancient temples, and the best food scene in the world."
+            },
+            {
+                id: 4,
+                name: "Machu Picchu",
+                location: "Peru",
+                category: "adventure",
+                price: 3999,
+                img: "https://picsum.photos/id/201/800/600",
+                desc: "The lost city of the Incas – one of the New Seven Wonders."
+            },
+            {
+                id: 5,
+                name: "Maldives",
+                location: "Maldives",
+                category: "beach",
+                price: 4799,
+                img: "https://picsum.photos/id/251/800/600",
+                desc: "Overwater bungalows, crystal-clear lagoons, and world-class diving."
+            },
+            {
+                id: 6,
+                name: "Reykjavik & Golden Circle",
+                location: "Iceland",
+                category: "mountain",
+                price: 3299,
+                img: "https://picsum.photos/id/29/800/600",
+                desc: "Geysers, waterfalls, black sand beaches, and the Northern Lights."
+            },
+            {
+                id: 7,
+                name: "Bali",
+                location: "Indonesia",
+                category: "beach",
+                price: 1799,
+                img: "https://picsum.photos/id/316/800/600",
+                desc: "Rice terraces, temples, yoga retreats, and perfect waves."
+            },
+            {
+                id: 8,
+                name: "Patagonia",
+                location: "Chile & Argentina",
+                category: "adventure",
+                price: 5199,
+                img: "https://picsum.photos/id/201/800/600",
+                desc: "Glaciers, granite towers, and the end of the world."
+            }
+        ]
+
+        // Render all destinations
+        function renderDestinations(filteredDestinations) {
+            const container = document.getElementById('destination-grid')
+            container.innerHTML = ''
+            
+            filteredDestinations.forEach(dest => {
+                const cardHTML = `
+                    <div onclick="showDestinationModal(${dest.id})" 
+                         class="bg-white border border-zinc-100 rounded-3xl overflow-hidden cursor-pointer card-hover">
+                        <div class="h-64 bg-cover bg-center" 
+                             style="background-image: url('${dest.img}')"></div>
+                        <div class="p-8">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="font-semibold text-2xl">${dest.name}</div>
+                                    <div class="text-sky-600">${dest.location}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs text-zinc-400">from</div>
+                                    <div class="text-2xl font-semibold">$${dest.price}</div>
+                                </div>
+                            </div>
+                            <p class="mt-6 text-zinc-600 line-clamp-3">${dest.desc}</p>
+                            
+                            <div class="mt-8 flex justify-between items-center text-xs uppercase tracking-widest font-medium">
+                                <div class="px-5 py-2 bg-zinc-100 rounded-3xl">${dest.category}</div>
+                                <div class="flex items-center gap-x-2 text-emerald-500">
+                                    <i class="fa-solid fa-plane"></i>
+                                    <span>Book now</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+                container.innerHTML += cardHTML
+            })
+        }
+
+        // Filter by category
+        function filterCategory(category) {
+            // Remove active class from all
+            document.querySelectorAll('#filter-buttons button').forEach(btn => {
+                btn.classList.remove('active-filter', 'bg-zinc-900', 'text-white')
+                btn.classList.add('border', 'border-zinc-300')
+            })
+            
+            // Add active to clicked
+            const buttons = document.querySelectorAll('#filter-buttons button')
+            for (let btn of buttons) {
+                if ((category === 'all' && btn.textContent === 'All') || 
+                    btn.getAttribute('onclick').includes(`'${category}'`)) {
+                    btn.classList.add('active-filter', 'bg-zinc-900', 'text-white')
+                    btn.classList.remove('border', 'border-zinc-300')
+                    break
+                }
+            }
+            
+            let filtered = destinations
+            
+            if (category !== 'all') {
+                filtered = destinations.filter(d => d.category === category)
+            }
+            
+            renderDestinations(filtered)
+        }
+
+        // Live search
+        function liveSearch() {
+            const term = document.getElementById('main-search').value.toLowerCase().trim()
+            
+            const filtered = destinations.filter(dest => 
+                dest.name.toLowerCase().includes(term) ||
+                dest.location.toLowerCase().includes(term) ||
+                dest.desc.toLowerCase().includes(term)
+            )
+            
+            renderDestinations(filtered)
+        }
+
+        // Hero search quick filter
+        function filterFromHero() {
+            const term = document.getElementById('hero-search').value.toLowerCase().trim()
+            if (!term) return
+            
+            const filtered = destinations.filter(dest => 
+                dest.name.toLowerCase().includes(term) || 
+                dest.location.toLowerCase().includes(term)
+            )
+            
+            // Scroll to destinations
+            document.getElementById('destinations').scrollIntoView({ behavior: 'smooth' })
+            
+            // Render filtered results
+            renderDestinations(filtered)
+        }
+
+        // Show single destination detail modal
+        function showDestinationModal(id) {
+            const dest = destinations.find(d => d.id === id)
+            if (!dest) return
+            
+            const modalHTML = `
+                <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-[999]" onclick="if(event.target.id === 'outer-modal') hideDestinationModal()">
+                    <div id="outer-modal" class="modal bg-white max-w-2xl w-full mx-6 rounded-3xl overflow-hidden">
+                        <div class="relative">
+                            <img src="${dest.img}" class="w-full h-96 object-cover">
+                            <button onclick="hideDestinationModal()" 
+                                    class="absolute top-6 right-6 bg-white text-3xl w-12 h-12 flex items-center justify-center rounded-2xl shadow">×</button>
+                        </div>
+                        
+                        <div class="p-10">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="text-4xl font-semibold">${dest.name}</div>
+                                    <div class="text-2xl text-sky-600">${dest.location}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="uppercase text-xs tracking-widest">from</div>
+                                    <div class="text-5xl font-semibold text-emerald-600">$${dest.price}</div>
+                                </div>
+                            </div>
+                            
+                            <p class="mt-10 text-lg leading-relaxed text-zinc-600">${dest.desc} This once-in-a-lifetime journey includes private transfers, luxury accommodations, expert local guides, and all meals.</p>
+                            
+                            <div class="grid grid-cols-3 gap-4 my-12">
+                                <div class="text-center">
+                                    <div class="text-4xl">⛰️</div>
+                                    <div class="mt-3 text-sm font-medium">Adventure</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-4xl">🍷</div>
+                                    <div class="mt-3 text-sm font-medium">Culture</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-4xl">🌊</div>
+                                    <div class="mt-3 text-sm font-medium">Relax</div>
+                                </div>
+                            </div>
+                            
+                            <button onclick="hideDestinationModal();setTimeout(showBookingModal, 400)" 
+                                    class="w-full py-7 bg-sky-600 hover:bg-sky-700 text-white text-xl font-semibold rounded-3xl transition">
+                                Start Planning This Trip
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `
+            const modalContainer = document.createElement('div')
+            modalContainer.id = 'dynamic-destination-modal'
+            modalContainer.innerHTML = modalHTML
+            document.body.appendChild(modalContainer)
+        }
+
+        function hideDestinationModal() {
+            const modal = document.getElementById('dynamic-destination-modal')
+            if (modal) modal.remove()
+        }
+
+        // Booking modal functions
+        function showBookingModal() {
+            document.getElementById('booking-modal').classList.remove('hidden')
+            document.getElementById('booking-modal').classList.add('flex')
+        }
+        
+        function hideBookingModal() {
+            const modal = document.getElementById('booking-modal')
+            modal.classList.add('hidden')
+            modal.classList.remove('flex')
+        }
+        
+        function confirmBooking() {
+            hideBookingModal()
+            
+            const confirmation = document.createElement('div')
+            confirmation.style.cssText = 'position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#10b981; color:white; padding:16px 32px; border-radius:9999px; box-shadow:0 25px 50px -12px rgb(0 0 0 / 0.4); z-index:9999; display:flex; align-items:center; gap:12px;'
+            confirmation.innerHTML = `
+                <i class="fa-solid fa-circle-check text-2xl"></i>
+                <div>
+                    <div class="font-semibold">Booking request received!</div>
+                    <div class="text-sm opacity-90">Our travel expert will contact you within 1 hour</div>
+                </div>
+            `
+            document.body.appendChild(confirmation)
+            
+            setTimeout(() => {
+                confirmation.style.transition = 'all 0.4s ease'
+                confirmation.style.opacity = '0'
+                confirmation.style.transform = 'translateX(-50%) translateY(20px)'
+                setTimeout(() => confirmation.remove(), 400)
+            }, 3800)
+        }
+
+        // Smooth scroll helper
+        function smoothScrollTo(section) {
+            const el = document.getElementById(section)
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' })
+            }
+        }
+
+        // Fake language toggle
+        function toggleLanguage() {
+            const lang = document.getElementById('lang-text')
+            if (lang.textContent === 'EN') {
+                lang.textContent = 'ES'
+            } else {
+                lang.textContent = 'EN'
+            }
+        }
+
+        // Keyboard escape support
+        document.addEventListener('keydown', function(e) {
+            if (e.key === "Escape") {
+                const bookingModal = document.getElementById('booking-modal')
+                if (!bookingModal.classList.contains('hidden')) hideBookingModal()
+                
+                const dynamicModal = document.getElementById('dynamic-destination-modal')
+                if (dynamicModal) hideDestinationModal()
+            }
+        })
+
+        // Initialize everything
+        function initializeApp() {
+            renderDestinations(destinations)
+            
+            // Make first filter button active by default
+            const allBtn = document.querySelector('#filter-buttons button')
+            if (allBtn) {
+                allBtn.classList.add('active-filter', 'bg-zinc-900', 'text-white')
+            }
+            
+            // Easter egg: press "K" to show a surprise message
+            document.addEventListener('keypress', (e) => {
+                if (e.key.toLowerCase() === 'k') {
+                    console.log('%c🚀 You found the secret key! Welcome to the team.', 'color:#0ea5e9; font-size:13px')
+                }
+            })
+        }
+
+        // Boot the app
+        window.onload = initializeApp
+    </script>
+</body>
+</html>
